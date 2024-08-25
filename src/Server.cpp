@@ -6,7 +6,14 @@ bool match_pattern(const std::string& input_line, const std::string& pattern) {
         return input_line.find(pattern) != std::string::npos;
     } else if(pattern == "\\d") {
               return input_line.find_first_of("123456890") != std::string::npos;
-    }
+    } else if (pattern == "\\w") {  // Matches any alphanumeric character or underscore
+        for (const auto &c : input_line) {
+            if (std::isalnum(c) || c == '_') {
+                return true;
+            }
+        }
+        return false;
+      }
     else {
         throw std::runtime_error("Unhandled pattern " + pattern);
     }
