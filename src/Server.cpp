@@ -4,16 +4,26 @@
 bool match_pattern(const std::string& input_line, const std::string& pattern) {
     if (pattern.length() == 1) {
         return input_line.find(pattern) != std::string::npos;
-    } else if(pattern == "\\d") {
+    }
+    else if(pattern == "\\d") {
               return input_line.find_first_of("123456890") != std::string::npos;
-    } else if (pattern == "\\w") {  // Matches any alphanumeric character or underscore
+    } 
+    else if (pattern == "\\w") {  // Matches any alphanumeric character or underscore
         for (const auto &c : input_line) {
             if (std::isalnum(c) || c == '_') {
                 return true;
             }
         }
         return false;
+
       }
+    else if (pattern.at(0) == '[' && pattern.at(pattern.length() - 1) == ']') {
+        for (const auto &l : pattern.substr(1, pattern.length() - 2)) {
+            if (input_line.find(l) != std::string::npos) {
+                return true;
+            }
+        }
+        return false;}
     else {
         throw std::runtime_error("Unhandled pattern " + pattern);
     }
