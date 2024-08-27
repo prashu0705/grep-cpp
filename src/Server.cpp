@@ -18,12 +18,31 @@ bool match_pattern(const std::string& input_line, const std::string& pattern) {
 
       }
     else if (pattern.at(0) == '[' && pattern.at(pattern.length() - 1) == ']') {
+    // Check for negative character group
+    if (pattern.length() > 2 && pattern.at(1) == '^') {
+        for (const auto &c : input_line) {
+            bool is_match = false;
+            for (const auto &l : pattern.substr(2, pattern.length() - 3)) {
+                if (c == l) {
+                    is_match = true;
+                    break;
+                }
+            }
+            if (!is_match) {
+                return true; // Found a character not in the negative group
+            }
+        }
+        return false; // All characters are in the negative group
+    } else {
+        // Original positive character group logic
         for (const auto &l : pattern.substr(1, pattern.length() - 2)) {
             if (input_line.find(l) != std::string::npos) {
                 return true;
             }
         }
-        return false;}
+        return false;
+    }
+}
     else {
         throw std::runtime_error("Unhandled pattern " + pattern);
     }
