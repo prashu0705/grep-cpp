@@ -1,6 +1,8 @@
 #include "pattern_matcher.h"
+#include <iostream>
+#include <vector>
 
-// Function to check if a character is in a given string
+// Helper function to check if a character is in a given string
 bool contains_any(const std::string& text, const std::string& chars) {
     return text.find_first_of(chars) != std::string::npos;
 }
@@ -15,17 +17,44 @@ bool ends_with(const std::string& text, const std::string& suffix) {
     return text.rfind(suffix) == text.size() - suffix.size();
 }
 
+// Split pattern by '|' into multiple alternatives
+std::vector<std::string> split_alternatives(const std::string& pattern) {
+    std::vector<std::string> alternatives;
+    size_t last = 0, next = 0;
+    while ((next = pattern.find('|', last)) != std::string::npos) {
+        alternatives.push_back(pattern.substr(last, next - last));
+        last = next + 1;
+    }
+    alternatives.push_back(pattern.substr(last));
+    return alternatives;
+}
+
 // Recursive function to match text with pattern
 bool match_pattern_rec(const std::string& text, const std::string& pattern) {
     if (pattern.empty()) return true;
     if (text.empty()) return false;
+
+    // Handle alternation (|) within parentheses
+    if (pattern[0] == '(') {
+        auto closing_paren = pattern.find(')');
+        std::string subpattern = pattern.substr(1, closing_paren - 1);
+        std::vector<std::string> alternatives = split_alternatives(subpattern);
+        
+        // Try matching each alternative
+        for (const auto& alt : alternatives) {
+            if (match_pattern_rec(text, alt)) {
+                return match_pattern_rec(text.substr(alt.size()), pattern.substr(closing_paren + 1));
+            }
+        }
+        return false;
+    }
 
     // Handle \d (digit) pattern
     if (pattern.substr(0, 2) == "\\d") {
         if (isdigit(text[0])) {
             return match_pattern_rec(text.substr(1), pattern.substr(2));
         } else {
-            return match_pattern_rec(text.substr(1), pattern);
+            return false;
         }
     }
 
@@ -34,7 +63,7 @@ bool match_pattern_rec(const std::string& text, const std::string& pattern) {
         if (isalnum(text[0])) {
             return match_pattern_rec(text.substr(1), pattern.substr(2));
         } else {
-            return match_pattern_rec(text.substr(1), pattern);
+            return false;
         }
     }
 
@@ -88,7 +117,7 @@ bool match_pattern_rec(const std::string& text, const std::string& pattern) {
     if (pattern[0] == text[0]) {
         return match_pattern_rec(text.substr(1), pattern.substr(1));
     } else {
-        return match_pattern_rec(text.substr(1), pattern);
+        return false;
     }
 }
 
@@ -109,4 +138,6 @@ bool match_pattern(const std::string& text, const std::string& pattern) {
     } while (!remaining_text.empty());
     return false;
 }
+
+
 
